@@ -1,6 +1,6 @@
 # picogram-apis
 
-Screenshots of working APIs are inside the screenshots folder.
+Screenshots of working APIs are [inside](https://github.com/ammarlakho/picogram-apis/tree/main/screenshots) the screenshots folder.
 
 ammar-work branch contains code for the following APIs:
 1. Get My Profile
