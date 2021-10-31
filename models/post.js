@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const commentSchema = require('./comment');
+const commentSchema = require('./comment').schema;
 
 const postSchema = new mongoose.Schema({
     username: {
@@ -13,7 +13,7 @@ const postSchema = new mongoose.Schema({
     like: {
         type: Number,
     },
-    // comments: [commentSchema]
+    comments: [commentSchema]
 })
 
 const Post = mongoose.model('Post', postSchema);

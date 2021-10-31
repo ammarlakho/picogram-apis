@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const postSchema = require('./post').schema;
+
 
 const userSchema = new mongoose.Schema({
     firstname: {
@@ -25,12 +27,14 @@ const userSchema = new mongoose.Schema({
        type: Boolean,
        required: true
     },
- 
     bio: { 
         type: String,
         required: true
     },
-
+    pictures : [postSchema],
+    followers : [String],
+    following : [String],
+    requests : [String],
 
 })
 
