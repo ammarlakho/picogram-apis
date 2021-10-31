@@ -12,6 +12,8 @@ app.use(express.json())
 app.use(cors())
 connectDB();
 
+//maryam here
+
 const userSchema = require('./models/user').schema
 const profileSchema = require('./models/profile').schema
 const postSchema = require('./models/post').schema
