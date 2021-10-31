@@ -6,7 +6,6 @@ Screenshots of working APIs are inside the [screenshots](https://github.com/amma
 1. Get My Profile
 2. Edit User Profile
 3. Get Someone Else's Profile
-4. Get Home
 
 [huda-work](https://github.com/ammarlakho/picogram-apis/tree/huda-work) branch contains code for the following APIs:
 1. Unfollow User
