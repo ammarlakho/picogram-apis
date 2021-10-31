@@ -1,63 +1,27 @@
-import dotenv from "dotenv"
-
-import express from "express"
-import cors from "cors"
-import mongoose from "mongoose"
-import jwt from "jsonwebtoken"
+const connectDB = require('./connection')
+const express = require('express');
+const dotenv = require('dotenv');
+const morgan = require('morgan');
+const cors = require('cors');
+const jwt = require("jsonwebtoken")
+const mongoose = require('mongoose');
 
 dotenv.config()
 const app = express()
 app.use(express.json())
-app.use(express.urlencoded())
 app.use(cors())
+connectDB();
 
-mongoose.connect("mongodb://localhost:27017/myLoginApp",
-{
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}, () => {
-    console.log("Database Connected")
-})
-
-const userSchema = new mongoose.Schema({
-    firstname: String,
-    lastname : String,
-    username : String,
-    privacy : Boolean,
-    email: String,
-    bio : String,
-    password : String
-})
-
-const commentSchema = new mongoose.Schema({
-    username: String,
-    text: String,
-    like: Number
-})
-
-
-
-const postSchema = new mongoose.Schema({
-    username: String,
-    
-    caption: String,
-    like: Number,
-    comments: [commentSchema]
-})
-
-
-const profileSchema = new mongoose.Schema({
-    username : String,
-    pictures : [postSchema],
-    followers :  [userSchema],
-    following : [userSchema],
-
-})
+const userSchema = require('./models/user').schema
+const profileSchema = require('./models/profile').schema
+const postSchema = require('./models/post').schema
+const commentSchema = require('./models/comment').schema
 
 const User = new mongoose.model("User", userSchema)
 const Profile = new mongoose.model("Profile", profileSchema)
 const Comments = new mongoose.model("Comments", commentSchema)
 const Posts = new mongoose.model("Post", postSchema)
+
 
 
 const header = {
@@ -80,10 +44,6 @@ app.post("/login", (req,res) => {
                 const accessToken = jwt.sign(userObj, "hello")
                
                 res.json({header, user, accessToken})
-                
-
-              
-                
             }
             else{
                 header.error_code = "2"
@@ -100,60 +60,67 @@ app.post("/login", (req,res) => {
 
 app.post("/register", (req,res) => {
     console.log(req.body)
-    const{firstname,lastname, email, password, privacy} = req.body
+    const{firstname,lastname, email, password, privacy, username} = req.body
     User.findOne({email: email}, (err, user) => {
         if (user){
             header.error_code = "4"
             header.message = "User already registered"
             res.send({header})
-        } else{
-    
-            const user = new User({
-                firstname,
-                lastname,
-                email,
-                password,
-                privacy
-    })
-    user.save(err => {
-        if(err) {
-            res.send(err)
-        } else {
-            header.error_code = "5"
-            header.message = "Successfully registered"
-            const userObj = {name : email}
-            const accessToken = jwt.sign(userObj, "helo")
-            res.send({header,user,accessToken})
+        } 
+        else { 
+            User.findOne({username: username}, (err, user) => {
+                if (user){
+                    header.error_code = "4"
+                    header.message = "User already registered"
+                    res.send({header})
+                } 
+                else {
+                    const user = new User(req.body)
+                    user.save(err => {
+                        if(err) {
+                            res.send(err)
+                        } else {
+                            header.error_code = "5"
+                            header.message = "Successfully registered"
+                            const userObj = {name : req.username}
+                            const accessToken = jwt.sign(userObj, "helo")
+                            res.send({header,user,accessToken})
+                        }
+                    })
+                }
+            })
         }
     })
-}
-
-})
 })
 
 app.post("/unfollow", (req,res) => {
-    const {id, username} = req.body
-    Profile.findOne({userid : id}, (err, user) => {
+   
+    console.log("req.body", req.body)
+    console.log("req.myId", req.body.myId)
+    console.log("req.unfollowUsername", req.body.unfollowUsername)
+
+    Profile.findOne({_id: req.body.myId}, (err, user) => {
         if (user){
-            
-            const userFollowing = user.following
-           const found =  userFollowing.find((userfoll, index) => {
-                if(userfoll.username == username)
-                {
+            const tempFollowing = user.following
+            const found =  tempFollowing.find((userfoll, index) => {
+                if(userfoll == req.body.unfollowUsername)
+                {   
+                    tempFollowing.splice(index,1)
                     
-                  user.following.splice(index,1)
-                  
+                    Profile.update({"_id": user._id}, {$set:{"following": tempFollowing}}, (err, resData) => {
+                        console.log("e1" , err)
+                        console.log("r1", resData)
+                    })
+                    header.error_code = 6
+                    header.message = "User Unfollowed"
+                    const currentFollowing = user.following
+                    res.send({header, tempFollowing, currentFollowing})
                     return true
                 }
-
+                
             })
-          
-            if (found){
-            header.error_code = 6
-            header.message = "User Unfollowed"
-            res.send({header})
-            }
-            else {
+       
+            if(!found) {    
                 header.error_code = 7
                 header.message = "You are not following this user"
                 res.send({header})
