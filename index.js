@@ -134,6 +134,63 @@ app.post("/unfollow", (req,res) => {
 
 })
 
+app.post("/acceptRequest", (req, res) => {
+    Profile.findOne({_id : req.body.myId}, (err, user) => {
+        if (user){
+            const tempFollowers = user.followers
+            tempFollowers.push(req.body.followerUsername)
+
+            Profile.update({"_id": user._id}, {$set:{"followers": tempFollowers}}, (err, resData) => {
+                console.log("e1" , err)
+                console.log("r1", resData)
+            })
+
+            header.error_code = 8
+                    header.message = "Request Accepted"
+                    const currentFollowers = user.followers
+                    res.send({header, tempFollowers, currentFollowers})
+
+        }
+
+    })
+
+})
+
+app.post("/removeFollower", (req,res) => {
+    Profile.findOne({_id: req.body.myId}, (err, user) => {
+        if (user){
+            const tempFollowers = user.followers
+            const found =  tempFollowers.find((userfoll, index) => {
+                if(userfoll == req.body.removeUsername)
+                {   
+                    tempFollowers.splice(index,1)
+                    
+                    Profile.update({"_id": user._id}, {$set:{"followers": tempFollowers}}, (err, resData) => {
+                        console.log("e1" , err)
+                        console.log("r1", resData)
+                    })
+                    header.error_code = 6
+                    header.message = "User removed"
+                    const currentFollowers = user.followers
+                    res.send({header, tempFollowers, currentFollowers})
+                    return true
+                }
+                
+            })
+       
+            if(!found) {    
+                header.error_code = 7
+                header.message = "error removing follower"
+                res.send({header})
+            }
+            
+        }
+       
+
+    })
+
+})
+
 app.listen(9002, ()=> {
     console.log("started at port 9002")
 })
