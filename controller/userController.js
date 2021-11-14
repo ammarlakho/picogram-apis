@@ -44,7 +44,7 @@ exports.getMyProfile = (req, res) => {
 exports.getOtherProfile = (req, res) => {
     var token = req.headers['x-access-token'];
     var usernameOther = req.query.username
-    console.log("usernameOther", usernameOther)
+
     if(!usernameOther) return res.status(400).send({error_code: 400, message: "No username specified"})
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
     
@@ -54,9 +54,8 @@ exports.getOtherProfile = (req, res) => {
       User.findOne({username: decoded.username}, (err, user) => {
         if(err) return res.status(500).send({error_code: 500, message: "Internal server error"})
         if(!user) return res.status(404).send({error_code: 404, message: "User not found"})
-        console.log("hi1")
+
         const tempFollowing = user.following
-        console.log(tempFollowing)
         const found = tempFollowing.find((userFoll, index) => {
 
             if(userFoll == usernameOther) {
