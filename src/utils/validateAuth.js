@@ -18,8 +18,8 @@ const jwtAuth = (req, res, next) => {
       return res.status(header.error_code).send({ header });
     }
     req.decoded = decoded;
+    next();
   });
-  next();
 };
 
 module.exports = { jwtAuth };

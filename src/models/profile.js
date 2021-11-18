@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const postSchema = require('./post').schema;
 
 const profileSchema = new mongoose.Schema({
-  username: {
+  bio: {
     type: String,
-    required: true,
+    default: '',
   },
   pictures: [postSchema],
   followers: [String],

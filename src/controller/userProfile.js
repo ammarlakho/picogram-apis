@@ -3,16 +3,17 @@
 /* eslint-disable consistent-return */
 const jwt = require('jsonwebtoken');
 const config = require('../../config');
-const { getPrivateUser, getPublicUser } = require('../middlewares/getUserData');
-
-const secretKey = config.SECRET_KEY;
-console.log('2', secretKey);
+const {
+  getPrivateUser,
+  getPublicUser,
+  getNewUser,
+  getMyUser,
+} = require('../utils/getUserData');
 
 let header = {
   error_code: String,
   message: String,
 };
-
 const User = require('../models/user');
 
 exports.getProfile = (req, res) => {
@@ -37,12 +38,12 @@ exports.getProfile = (req, res) => {
 
     // If other user is me
     if (myUsername === otherUsername) {
-      const userPrivateInfo = getPrivateUser(user);
+      const userMyInfo = getMyUser(user);
       header = { error_code: 200, message: 'Successfully found user(ME)' };
-      return res.status(header.error_code).send({ header, userPrivateInfo });
+      return res.status(header.error_code).send({ header, userMyInfo });
     }
 
-    const tempFollowing = user.following;
+    const tempFollowing = user.profile.following;
     const found = tempFollowing.find(
       (tempUsername) => otherUsername === tempUsername
     );
@@ -63,7 +64,7 @@ exports.getProfile = (req, res) => {
         const userPrivate = getPrivateUser(userOther);
         header = {
           error_code: 200,
-          message: 'Successfully found other user(ALL)',
+          message: 'Successfully found other user(Following)',
         };
         return res.status(header.error_code).send({ header, userPrivate });
       });
@@ -87,7 +88,7 @@ exports.getProfile = (req, res) => {
           const userPrivate = getPrivateUser(userOther);
           header = {
             error_code: 200,
-            message: 'Successfully found other user(ALL)',
+            message: 'Successfully found other user(Public)',
           };
           return res.status(header.error_code).send({ header, userPrivate });
         }
@@ -96,7 +97,7 @@ exports.getProfile = (req, res) => {
         const userPublic = getPublicUser(userOther);
         header = {
           error_code: 200,
-          message: 'Successfully found other user(Only Public Info)',
+          message: 'Successfully found other user(Private & NF)',
         };
         return res.status(200).send({ header, userPublic });
       });
@@ -119,7 +120,7 @@ exports.editMyProfile = (req, res) => {
     if (req.body.firstname) user.firstname = req.body.firstname;
     if (req.body.lastname) user.lastname = req.body.lastname;
     if (req.body.email) user.email = req.body.email;
-    if (req.body.bio) user.bio = req.body.bio;
+    if (req.body.bio) user.profile.bio = req.body.bio;
     if (req.body.privacy) user.privacy = req.body.privacy;
 
     user.save((saveErr, savedUser) => {
@@ -149,7 +150,9 @@ exports.login = (req, res) => {
       }
       header = { error_code: 200, message: 'Login successful' };
       const userSignObj = { username };
-      const accessToken = jwt.sign(userSignObj, secretKey, { expiresIn: '1h' });
+      const accessToken = jwt.sign(userSignObj, config.SECRET_KEY, {
+        expiresIn: '10h',
+      });
       return res.status(header.error_code).send({ header, accessToken });
     }
 
@@ -183,7 +186,7 @@ exports.register = (req, res) => {
         return res.status(header.error_code).send({ header });
       }
 
-      const newUser = new User(req.body);
+      const newUser = getNewUser(req.body);
       newUser.save((saveErr) => {
         if (saveErr) {
           header = { error_code: 500, message: saveErr };
@@ -195,10 +198,12 @@ exports.register = (req, res) => {
           message: 'User created successfully',
         };
         const userSignObj = { username };
-        const accessToken = jwt.sign(userSignObj, secretKey, {
-          expiresIn: '1h',
+        const accessToken = jwt.sign(userSignObj, config.SECRET_KEY, {
+          expiresIn: '10h',
         });
-        res.status(header.error_code).send({ header, newUser, accessToken });
+        return res
+          .status(header.error_code)
+          .send({ header, newUser, accessToken });
       });
     });
   });

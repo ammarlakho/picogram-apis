@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const postSchema = require('./post').schema;
+const profileSchema = require('./profile').schema;
 
 const userSchema = new mongoose.Schema({
   firstname: {
@@ -26,14 +26,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
-  bio: {
-    type: String,
-    required: true,
+  profile: {
+    type: profileSchema,
+    default: {},
   },
-  pictures: [postSchema],
-  followers: [String],
-  following: [String],
-  requests: [String],
 });
 
 const User = mongoose.model('User', userSchema);
