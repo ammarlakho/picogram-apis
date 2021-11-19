@@ -2,6 +2,8 @@
 
 Screenshots of working APIs are inside the [screenshots](https://github.com/ammarlakho/picogram-apis/tree/main/screenshots) folder.
 
+[main](https://github.com/ammarlakho/picogram-apis/tree/main) branch contains the merged code for all the APIs.
+
 [ammar-work](https://github.com/ammarlakho/picogram-apis/tree/ammar-work) branch contains code for the following APIs:
 1. Get My Profile
 2. Edit User Profile
