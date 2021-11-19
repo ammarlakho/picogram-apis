@@ -34,6 +34,7 @@
     "mongoose": "^5.9.15"
   },
   "devDependencies": {
+    "cors": "^2.8.5",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-config-prettier": "^6.11.0",

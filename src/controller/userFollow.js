@@ -94,9 +94,7 @@ exports.unfollow = (req, res) => {
         return res.status(header.error_code).send({ header });
       }
 
-      console.log(otherUser.profile.followers);
       otherUser.profile.followers.splice(index2, 1);
-      console.log(otherUser.profile.followers);
       otherUser.save((saveErr) => {
         if (saveErr) {
           header = { error_code: 500, message: saveErr };

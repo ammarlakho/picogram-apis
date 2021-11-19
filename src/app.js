@@ -1,12 +1,14 @@
 const express = require('express');
-const expressip = require('express-ip');
+// const expressip = require('express-ip');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const cors = require('cors');
 const { router } = require('./routes.js');
 const { connectDB } = require('./connection');
 
 const app = express();
 
 app.use(express.json());
-app.use(expressip().getIpInfoMiddleware);
+app.use(cors());
 
 app.use((req, res, next) => {
   // // Website you wish to allow to connect

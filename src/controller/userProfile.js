@@ -17,7 +17,16 @@ let header = {
 const User = require('../models/user');
 
 exports.getProfile = (req, res) => {
-  const otherUsername = req.params.username;
+  let otherUsername;
+  console.log(req.params.username);
+  if (req.params.username === undefined) {
+    console.log('inside');
+    console.log('decoded', req.decoded.username);
+    otherUsername = req.decoded.username;
+    console.log('other', otherUsername);
+  } else {
+    otherUsername = req.params.username;
+  }
   const myUsername = req.decoded.username;
 
   if (!otherUsername) {
@@ -25,12 +34,15 @@ exports.getProfile = (req, res) => {
     return res.status(header.error_code).send({ header });
   }
 
+  console.log(myUsername);
+
   User.findOne({ username: myUsername }, (findErr, user) => {
     if (findErr) {
       header = { error_code: 500, message: findErr };
       return res.status(header.error_code).send({ header });
     }
 
+    console.log(user);
     if (!user) {
       header = { error_code: 404, message: 'User not found' };
       return res.status(header.error_code).send({ header });
@@ -38,9 +50,10 @@ exports.getProfile = (req, res) => {
 
     // If other user is me
     if (myUsername === otherUsername) {
-      const userMyInfo = getMyUser(user);
+      console.log('should be here');
+      const userObj = getMyUser(user);
       header = { error_code: 200, message: 'Successfully found user(ME)' };
-      return res.status(header.error_code).send({ header, userMyInfo });
+      return res.status(header.error_code).send({ header, userObj });
     }
 
     const tempFollowing = user.profile.following;
@@ -61,12 +74,12 @@ exports.getProfile = (req, res) => {
           return res.status(header.error_code).send({ header });
         }
 
-        const userPrivate = getPrivateUser(userOther);
+        const userObj = getPrivateUser(userOther);
         header = {
           error_code: 200,
           message: 'Successfully found other user(Following)',
         };
-        return res.status(header.error_code).send({ header, userPrivate });
+        return res.status(header.error_code).send({ header, userObj });
       });
     }
 
@@ -85,21 +98,21 @@ exports.getProfile = (req, res) => {
 
         // If other user is public
         if (!userOther.privacy) {
-          const userPrivate = getPrivateUser(userOther);
+          const userObj = getPrivateUser(userOther);
           header = {
             error_code: 200,
             message: 'Successfully found other user(Public)',
           };
-          return res.status(header.error_code).send({ header, userPrivate });
+          return res.status(header.error_code).send({ header, userObj });
         }
 
         // If other user is private
-        const userPublic = getPublicUser(userOther);
+        const userObj = getPublicUser(userOther);
         header = {
           error_code: 200,
           message: 'Successfully found other user(Private & NF)',
         };
-        return res.status(200).send({ header, userPublic });
+        return res.status(200).send({ header, userObj });
       });
     }
   });
@@ -117,9 +130,7 @@ exports.editMyProfile = (req, res) => {
       return res.status(header.error_code).send({ header });
     }
 
-    if (req.body.firstname) user.firstname = req.body.firstname;
-    if (req.body.lastname) user.lastname = req.body.lastname;
-    if (req.body.email) user.email = req.body.email;
+    if (req.body.fullname) user.fullname = req.body.username;
     if (req.body.bio) user.profile.bio = req.body.bio;
     if (req.body.privacy) user.privacy = req.body.privacy;
 

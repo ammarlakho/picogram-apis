@@ -12,6 +12,7 @@ router.post('/login', userProfile.login);
 router.post('/register', userProfile.register);
 
 // My Profile
+router.get('/profile', jwtAuth, userProfile.getProfile);
 router.get('/profile/?:username', jwtAuth, userProfile.getProfile);
 router.put('/edit-my-profile', jwtAuth, userProfile.editMyProfile);
 
