@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
-const commentSchema = require('./comment').schema;
 
 const postSchema = new mongoose.Schema({
-  username: {
+  poster: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  url: {
     type: String,
     required: true,
   },
@@ -10,10 +14,10 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  like: {
-    type: Number,
+  date: {
+    type: Date,
+    reqquired: true,
   },
-  comments: [commentSchema],
 });
 
 const Post = mongoose.model('Post', postSchema);

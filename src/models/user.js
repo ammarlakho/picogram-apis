@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
-const profileSchema = require('./profile').schema;
 
 const userSchema = new mongoose.Schema({
-  fullname: {
+  username: {
     type: String,
     required: true,
   },
-  username: {
+  fullname: {
     type: String,
     required: true,
   },
@@ -22,9 +21,9 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
-  profile: {
-    type: profileSchema,
-    default: {},
+  bio: {
+    type: String,
+    default: '',
   },
 });
 
