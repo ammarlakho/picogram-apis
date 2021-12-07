@@ -1,157 +1,117 @@
 /* eslint-disable consistent-return */
 let header = {
-  error_code: String,
+  status_code: String,
   message: String,
 };
+const FollowRelationship = require('../models/followRelationship');
 const User = require('../models/user');
 
-exports.acceptRequest = (req, res) => {
-  const myUsername = req.decoded.username;
-  const followerUsername = req.query.username;
-
-  User.findOne({ username: myUsername }, (err, user) => {
-    if (err) {
-      header = { error_code: 500, message: err };
-      return res.status(header.error_code).send({ header });
-    }
-
-    if (!user) {
-      header = { error_code: 404, message: 'User not found' };
-      return res.status(header.error_code).send({ header });
-    }
-
-    const index = user.profile.requests.indexOf(followerUsername);
-
-    if (index === -1) {
-      header = {
-        error_code: 400,
-        message: `You do not have a request from '${followerUsername}''`,
-      };
-      return res.status(header.error_code).send({ header });
-    }
-
-    // Removed from requests
-    user.profile.requests.splice(index, 1);
-    // Add to followers
-    user.profile.followers.push(followerUsername);
-    user.save((saveErr) => {
-      if (saveErr) {
-        header = { error_code: 500, message: saveErr };
-        return res.status(header.error_code).send({ header });
-      }
-    });
-
-    User.findOne({ username: followerUsername }, (err2, otherUser) => {
-      if (err2) {
-        header = { error_code: 500, message: err2 };
-        return res.status(header.error_code).send({ header });
-      }
-      // Add to following
-      otherUser.profile.following.push(myUsername);
-      otherUser.save((saveErr) => {
-        if (saveErr) {
-          header = { error_code: 500, message: saveErr };
-          return res.status(header.error_code).send({ header });
-        }
-      });
-      header = {
-        error_code: 200,
-        message: `Accepted follow req from: ${followerUsername}`,
-      };
-      return res.status(header.error_code).send({ header, user, otherUser });
-    });
-  });
-};
-
-exports.rejectRequest = (req, res) => {
-  const myUsername = req.decoded.username;
-  const followerUsername = req.query.username;
-
-  User.findOne({ username: myUsername }, (err, user) => {
-    if (err) {
-      header = { error_code: 500, message: err };
-      return res.status(header.error_code).send({ header });
-    }
-
-    if (!user) {
-      header = { error_code: 404, message: 'User not found' };
-      return res.status(header.error_code).send({ header });
-    }
-
-    const index = user.profile.requests.indexOf(followerUsername);
-
-    if (index === -1) {
-      header = {
-        error_code: 400,
-        message: `You do not have a request from '${followerUsername}''`,
-      };
-      return res.status(header.error_code).send({ header });
-    }
-
-    // Removed from requests
-    user.profile.requests.splice(index, 1);
-    user.save((saveErr) => {
-      if (saveErr) {
-        header = { error_code: 500, message: saveErr };
-        return res.status(header.error_code).send({ header });
-      }
-    });
-
-    header = {
-      error_code: 200,
-      message: `Rejected follow req from: ${followerUsername}`,
-    };
-    return res.status(header.error_code).send({ header, user });
-  });
-};
-
-exports.sendRequest = (req, res) => {
+exports.sendRequest = async (req, res) => {
   const myUsername = req.decoded.username;
   const requestedUsername = req.query.username;
 
-  User.findOne({ username: requestedUsername }, (err, user) => {
-    if (err) {
-      header = { error_code: 500, message: err };
-      return res.status(header.error_code).send({ header });
+  try {
+    const myUser = await User.findOne({ username: myUsername }).exec();
+    const requestedUser = await User.findOne({
+      username: requestedUsername,
+    }).exec();
+
+    if (!myUser) {
+      header = { status_code: 404, message: `User '${myUsername}' not found` };
+      return res.status(404).send({ header });
     }
 
-    if (!user) {
-      header = { error_code: 404, message: 'User not found' };
-      return res.status(header.error_code).send({ header });
-    }
-
-    const index = user.profile.requests.indexOf(myUsername);
-    const index2 = user.profile.followers.indexOf(myUsername);
-
-    if (index !== -1) {
+    if (!requestedUser) {
       header = {
-        error_code: 400,
-        message: `You '${myUsername}' have already sent a request to '${requestedUsername}''`,
+        status_code: 404,
+        message: `User '${requestedUsername}' not found`,
       };
-      return res.status(header.error_code).send({ header });
+      return res.status(404).send({ header });
     }
 
-    if (index2 !== -1) {
+    const oldRelationship = await FollowRelationship.findOne({
+      sender: myUsername,
+      receiver: requestedUsername,
+    }).exec();
+
+    // If there is no relationship, create one
+    if (!oldRelationship) {
+      console.log('no result');
+      const newRelationshipEntry = new FollowRelationship({
+        sender: myUsername,
+        receiver: requestedUsername,
+        status: 'pending',
+      });
+      const newRelationship = await newRelationshipEntry.save();
+      header = { status_code: 200, message: 'Successfully sent request.' };
+      return res.status(header.status_code).send({ header, newRelationship });
+    }
+
+    // If there is a relationship, update it
+    oldRelationship.status = 'pending';
+    const newRelationship = await oldRelationship.save();
+    header = { status_code: 200, message: 'Successfully sent request.' };
+    return res.status(header.status_code).send({ header, newRelationship });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
+};
+
+exports.acceptRequest = async (req, res) => {
+  const myUsername = req.decoded.username;
+  const requestedUsername = req.query.username;
+
+  try {
+    const oldRelationship = await FollowRelationship.findOne({
+      sender: requestedUsername,
+      receiver: myUsername,
+    }).exec();
+
+    // If there is no request, return error
+    if (!oldRelationship || oldRelationship.status !== 'pending') {
       header = {
-        error_code: 400,
-        message: `You '${myUsername}' are already following '${requestedUsername}''`,
+        status_code: 400,
+        message: `You do not have a request from '${requestedUsername}'`,
       };
-      return res.status(header.error_code).send({ header });
+      return res.status(header.status_code).send({ header });
     }
 
-    // Add to requests
-    user.profile.requests.push(myUsername);
-    user.save((saveErr) => {
-      if (saveErr) {
-        header = { error_code: 500, message: saveErr };
-        return res.status(header.error_code).send({ header });
-      }
-    });
+    oldRelationship.status = 'accepted';
+    const newRelationship = await oldRelationship.save();
+    header = { status_code: 200, message: 'Successfully accepted request.' };
+    return res.status(header.status_code).send({ header, newRelationship });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
+};
 
-    header = {
-      error_code: 200,
-      message: `Sent follow req to: ${requestedUsername}`,
-    };
-    return res.status(header.error_code).send({ header, user });
-  });
+exports.rejectRequest = async (req, res) => {
+  const myUsername = req.decoded.username;
+  const requestedUsername = req.query.username;
+
+  try {
+    const oldRelationship = await FollowRelationship.findOne({
+      sender: requestedUsername,
+      receiver: myUsername,
+    }).exec();
+
+    // If there is no request, return error
+    if (!oldRelationship || oldRelationship.status !== 'pending') {
+      header = {
+        status_code: 400,
+        message: `You do not have a request from '${requestedUsername}'`,
+      };
+      return res.status(header.status_code).send({ header });
+    }
+
+    oldRelationship.status = 'none';
+    const newRelationship = await oldRelationship.save();
+    header = { status_code: 200, message: 'Successfully rejected request.' };
+    return res.status(header.status_code).send({ header, newRelationship });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
 };

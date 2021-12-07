@@ -4,7 +4,7 @@
 const User = require('../models/user');
 
 let header = {
-  error_code: String,
+  status_code: String,
   message: String,
 };
 let errorCode;
@@ -15,9 +15,9 @@ const editUserArray = (myUsername, otherUsername, arrayName, addOrDelete) => {
     User.findOne({ username: myUsername})
     .then(user => {
         if (!user) {
-            header = { error_code: 404, message: 'User not found' };
+            header = { status_code: 404, message: 'User not found' };
             responseObj = { header };
-            errorCode = header.error_code;
+            errorCode = header.status_code;
             return [errorCode, responseObj];
         } 
 
@@ -27,11 +27,11 @@ const editUserArray = (myUsername, otherUsername, arrayName, addOrDelete) => {
             if (index === -1) {
               console.log('in index -1');
               header = {
-                error_code: 400,
+                status_code: 400,
                 message: `You are not following/being followed by this user '${otherUsername}''`,
               };
               responseObj = { header };
-              errorCode = header.error_code;
+              errorCode = header.status_code;
               console.log('hereee');
               console.log(responseObj);
               console.log(errorCode);
@@ -52,23 +52,23 @@ const editUserArray = (myUsername, otherUsername, arrayName, addOrDelete) => {
           user.save()
           .then(savedUser => {
                 header = {
-                    error_code: 200,
+                    status_code: 200,
                     message: 'User(follower) updated successfully',
                 };
                 responseObj = { header, savedUser };
-                errorCode = header.error_code;
+                errorCode = header.status_code;
           })
           .catch(err => {
-            header = { error_code: 500, message: err };
+            header = { status_code: 500, message: err };
             responseObj = { header };
-            errorCode = header.error_code;
+            errorCode = header.status_code;
           })
           return [errorCode, responseObj];
     })
     .catch(err => {
-        header = { error_code: 500, message: err };
+        header = { status_code: 500, message: err };
         responseObj = { header };
-        errorCode = header.error_code;
+        errorCode = header.status_code;
         return [errorCode, responseObj];
     });
 

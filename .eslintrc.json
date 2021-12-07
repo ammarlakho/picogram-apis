@@ -19,7 +19,8 @@
     "prettier"
   ],
   "rules": {
-    "prettier/prettier": "error",
-    "no-console": "off"
+    "prettier/prettier": "warn",
+    "no-console": "off",
+    "brace-style": "off"
   }
 }
