@@ -11,10 +11,8 @@ exports.sendRequest = async (req, res) => {
   const requestedUsername = req.query.username;
 
   try {
-    const myUser = await User.findOne({ username: myUsername }).exec();
-    const requestedUser = await User.findOne({
-      username: requestedUsername,
-    }).exec();
+    const myUser = await User.findById(myUsername).exec();
+    const requestedUser = await User.findById(requestedUsername).exec();
 
     if (!myUser) {
       header = { status_code: 404, message: `User '${myUsername}' not found` };
@@ -47,7 +45,16 @@ exports.sendRequest = async (req, res) => {
       return res.status(header.status_code).send({ header, newRelationship });
     }
 
-    // If there is a relationship, update it
+    // If relationship is already pending, return error
+    if (oldRelationship.status === 'pending') {
+      header = {
+        status_code: 400,
+        message: `You have already sent a req to '${requestedUsername}'`,
+      };
+      return res.status(header.status_code).send({ header });
+    }
+
+    // If there is a relationship but not pending, update it
     oldRelationship.status = 'pending';
     const newRelationship = await oldRelationship.save();
     header = { status_code: 200, message: 'Successfully sent request.' };
@@ -110,6 +117,26 @@ exports.rejectRequest = async (req, res) => {
     const newRelationship = await oldRelationship.save();
     header = { status_code: 200, message: 'Successfully rejected request.' };
     return res.status(header.status_code).send({ header, newRelationship });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
+};
+
+exports.getRequests = async (req, res) => {
+  const myUsername = req.decoded.username;
+  try {
+    const requests = await FollowRelationship.find(
+      {
+        receiver: myUsername,
+        status: 'pending',
+      },
+      'sender'
+    )
+      .populate('sender')
+      .exec();
+    header = { status_code: 200, message: 'Got requests' };
+    return res.status(header.status_code).send({ header, requests });
   } catch (err) {
     header = { status_code: 500, message: err };
     return res.status(header.status_code).send({ header });

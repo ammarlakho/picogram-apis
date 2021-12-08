@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const likeSchema = new mongoose.Schema({
   liker: {
     type: String,
+    ref: 'User',
     required: true,
   },
   post: {

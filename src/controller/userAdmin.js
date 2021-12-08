@@ -1,7 +1,7 @@
 const User = require('../models/user');
 
 let header = {
-  error_code: String,
+  status_code: String,
   message: String,
 };
 

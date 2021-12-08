@@ -10,10 +10,13 @@ const getUserObject = (
   posts,
   status
 ) => {
+  console.log('fullname', otherUser.fullname);
+  console.log('username', otherUser._id);
+  console.log('status', status);
   return {
     fullname: otherUser.fullname,
-    username: otherUser.username,
-    bio: otherUser.profile.bio,
+    username: otherUser._id,
+    bio: otherUser.bio,
     privacy: otherUser.privacy,
     followersCount,
     followingCount,
@@ -23,29 +26,31 @@ const getUserObject = (
 };
 
 const getUser = async (myUsername, otherUsername) => {
-  const otherUser = await User.findOne({ username: otherUsername }).exec();
-
+  const otherUser = await User.findById(otherUsername).exec();
+  console.log('otherUser', otherUser);
   const relationship = await FollowRelationship.findOne({
     sender: myUsername,
     receiver: otherUsername,
   }).exec();
-
+  console.log('relationship', relationship);
   const followingCount = await FollowRelationship.countDocuments({
     sender: otherUsername,
   }).exec();
-
+  console.log('followingCount', followingCount);
   const followersCount = await FollowRelationship.countDocuments({
     receiver: otherUsername,
   }).exec();
+  console.log('followersCount', followersCount);
 
   // If i want to see my own profile
   if (myUsername === otherUsername) {
     const posts = await Post.find({ poster: otherUser._id }).exec();
+    console.log('posts', posts);
     return getUserObject(otherUser, followersCount, followingCount, posts, 0);
   }
 
   // If i am following the other user
-  if (relationship.status === 'accepted') {
+  if (relationship && relationship.status === 'accepted') {
     const posts = await Post.find({ poster: otherUser._id }).exec();
     return getUserObject(otherUser, followersCount, followingCount, posts, 1);
   }
@@ -62,8 +67,8 @@ const getUser = async (myUsername, otherUsername) => {
 
 const getNewUser = (body) => {
   const newUser = new User({
+    _id: body.username,
     fullname: body.fullname,
-    username: body.username,
     email: body.email,
     password: body.password,
     privacy: body.privacy,
@@ -75,28 +80,3 @@ module.exports = {
   getNewUser,
   getUser,
 };
-
-// const getMyUser = (userOther) => {
-//   return {
-//     fullname: userOther.fullname,
-//     username: userOther.username,
-//     bio: userOther.profile.bio,
-//     followers: userOther.profile.followers,
-//     following: userOther.profile.following,
-//     pictures: userOther.pictures,
-//     email: userOther.email,
-//     followStatus: 0,
-//   };
-// };
-
-// const getPublicUser = (userOther) => {
-//   return {
-//     fullname: userOther.fullname,
-//     username: userOther.username,
-//     bio: userOther.profile.bio,
-//     privacy: userOther.privacy,
-//     followersCount: userOther.profile.followers.length,
-//     followingCount: userOther.profile.following.length,
-//     followStatus: -1,
-//   };
-// };

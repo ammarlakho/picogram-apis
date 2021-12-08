@@ -1,178 +1,104 @@
 /* eslint-disable prefer-destructuring */
-/* eslint-disable camelcase */
-// const config = require('../../config');
 /* eslint-disable consistent-return */
-// const { editUserArray } = require('../utils/editUser');
 
 let header = {
-  error_code: String,
+  status_code: String,
   message: String,
 };
-const User = require('../models/user');
+const FollowRelationship = require('../models/followRelationship');
 
-exports.getFollowers = (req, res) => {
+exports.getFollowers = async (req, res) => {
   const myUsername = req.decoded.username;
-
-  User.findOne({ username: myUsername }, (err, user) => {
-    if (err) {
-      header = { error_code: 500, message: err };
-      return res.status(header.error_code).send({ header });
-    }
-    header = { error_code: 200, message: 'Got followers' };
-    const followers = user.profile.followers;
-    return res.status(header.error_code).send({ header, followers });
-  });
+  try {
+    const followers = await FollowRelationship.find(
+      {
+        receiver: myUsername,
+        status: 'accepted',
+      },
+      'sender'
+    )
+      .populate('sender')
+      .exec();
+    header = { status_code: 200, message: 'Got followers' };
+    return res.status(header.status_code).send({ header, followers });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
 };
 
-exports.getFollowing = (req, res) => {
+exports.getFollowing = async (req, res) => {
   const myUsername = req.decoded.username;
-
-  User.findOne({ username: myUsername }, (err, user) => {
-    if (err) {
-      header = { error_code: 500, message: err };
-      return res.status(header.error_code).send({ header });
-    }
-    header = { error_code: 200, message: 'Got following' };
-    const following = user.profile.following;
-    return res.status(header.error_code).send({ header, following });
-  });
+  try {
+    const following = await FollowRelationship.find(
+      {
+        sender: myUsername,
+        status: 'accepted',
+      },
+      'receiver'
+    )
+      .populate('receiver')
+      .exec();
+    header = { status_code: 200, message: 'Got following' };
+    return res.status(header.status_code).send({ header, following });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
 };
 
-exports.unfollow = (req, res) => {
+exports.unfollow = async (req, res) => {
   const myUsername = req.decoded.username;
   const unfollowUsername = req.query.username;
 
-  // Unfollow req sender wala user
-  User.findOne({ username: myUsername }, (err, user) => {
-    if (err) {
-      header = { error_code: 500, message: err };
-      return res.status(header.error_code).send({ header });
-    }
+  try {
+    const oldRelationship = await FollowRelationship.findOne({
+      sender: myUsername,
+      receiver: unfollowUsername,
+    }).exec();
 
-    if (!user) {
-      header = { error_code: 404, message: 'User not found' };
-      return res.status(header.error_code).send({ header });
-    }
-
-    const index = user.profile.following.indexOf(unfollowUsername);
-
-    if (index === -1) {
+    if (!oldRelationship || oldRelationship.status !== 'accepted') {
       header = {
-        error_code: 400,
-        message: 'Not found in following list',
+        status_code: 404,
+        message: `Cannot unfollow someone you don't follow`,
       };
-      return res.status(header.error_code).send({ header });
+      return res.status(404).send({ header });
     }
-
-    user.profile.following.splice(index, 1);
-    user.save((saveErr) => {
-      if (saveErr) {
-        header = { error_code: 500, message: saveErr };
-        return res.status(header.error_code).send({ header });
-      }
-    });
-
-    // Unfollow req reciever wala user
-    User.findOne({ username: unfollowUsername }, (err2, otherUser) => {
-      if (err2) {
-        header = { error_code: 500, message: err2 };
-        return res.status(header.error_code).send({ header });
-      }
-
-      if (!otherUser) {
-        header = { error_code: 404, message: 'User not found' };
-        return res.status(header.error_code).send({ header });
-      }
-
-      const index2 = otherUser.profile.followers.indexOf(myUsername);
-
-      if (index2 === -1) {
-        header = {
-          error_code: 400,
-          message: 'Not found in follower list',
-        };
-        return res.status(header.error_code).send({ header });
-      }
-
-      otherUser.profile.followers.splice(index2, 1);
-      otherUser.save((saveErr) => {
-        if (saveErr) {
-          header = { error_code: 500, message: saveErr };
-          return res.status(header.error_code).send({ header });
-        }
-      });
-      header = { error_code: 200, message: 'Succesfully unfollowed' };
-      return res.status(header.error_code).send({ header, user, otherUser });
-    });
-  });
+    oldRelationship.status = 'none';
+    const newRelationship = await oldRelationship.save();
+    header = { status_code: 200, message: 'Successfully unfollowed.' };
+    return res.status(header.status_code).send({ header, newRelationship });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
 };
 
 // Remove from following of other person
-exports.removeFollower = (req, res) => {
+exports.removeFollower = async (req, res) => {
   const myUsername = req.decoded.username;
   const removeUsername = req.query.username;
 
-  // Remove from follower list of req sender
-  User.findOne({ username: myUsername }, (err, user) => {
-    if (err) {
-      header = { error_code: 500, message: err };
-      return res.status(header.error_code).send({ header });
-    }
+  try {
+    const oldRelationship = await FollowRelationship.findOne({
+      sender: removeUsername,
+      receiver: myUsername,
+    }).exec();
 
-    if (!user) {
-      header = { error_code: 404, message: 'User not found' };
-      return res.status(header.error_code).send({ header });
-    }
-
-    const index = user.profile.followers.indexOf(removeUsername);
-
-    if (index === -1) {
+    if (!oldRelationship || oldRelationship.status !== 'accepted') {
       header = {
-        error_code: 400,
-        message: 'Not found in following list',
+        status_code: 404,
+        message: `Cannot remove follower if they don't follow you`,
       };
-      return res.status(header.error_code).send({ header });
+      return res.status(404).send({ header });
     }
 
-    user.profile.followers.splice(index, 1);
-    user.save((saveErr) => {
-      if (saveErr) {
-        header = { error_code: 500, message: saveErr };
-        return res.status(header.error_code).send({ header });
-      }
-    });
-
-    // Remove from following list of req reciever
-    User.findOne({ username: removeUsername }, (err2, otherUser) => {
-      if (err2) {
-        header = { error_code: 500, message: err2 };
-        return res.status(header.error_code).send({ header });
-      }
-
-      if (!otherUser) {
-        header = { error_code: 404, message: 'User not found' };
-        return res.status(header.error_code).send({ header });
-      }
-
-      const index2 = otherUser.profile.following.indexOf(myUsername);
-
-      if (index2 === -1) {
-        header = {
-          error_code: 400,
-          message: 'Not found in follower list',
-        };
-        return res.status(header.error_code).send({ header });
-      }
-
-      otherUser.profile.following.splice(index2, 1);
-      otherUser.save((saveErr) => {
-        if (saveErr) {
-          header = { error_code: 500, message: saveErr };
-          return res.status(header.error_code).send({ header });
-        }
-      });
-      header = { error_code: 200, message: 'Succesfully removed follower' };
-      return res.status(header.error_code).send({ header, user, otherUser });
-    });
-  });
+    oldRelationship.status = 'none';
+    const newRelationship = await oldRelationship.save();
+    header = { status_code: 200, message: 'Successfully removed follower.' };
+    return res.status(header.status_code).send({ header, newRelationship });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
 };

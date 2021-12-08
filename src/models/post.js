@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const postSchema = new mongoose.Schema({
   poster: {
     type: String,
+    ref: 'User',
     required: true,
   },
   url: {

@@ -17,6 +17,7 @@ router.get('/profile/?:username', jwtAuth, userProfile.getProfile);
 router.put('/edit-my-profile', jwtAuth, userProfile.editMyProfile);
 
 // Requests
+router.get('/requests', jwtAuth, userRequests.getRequests);
 router.post('/send-request', jwtAuth, userRequests.sendRequest);
 router.post('/accept-request', jwtAuth, userRequests.acceptRequest);
 router.delete('/reject-request', jwtAuth, userRequests.rejectRequest);
@@ -28,7 +29,8 @@ router.delete('/unfollow', jwtAuth, userFollow.unfollow);
 router.delete('/remove-follower', jwtAuth, userFollow.removeFollower);
 
 // Admin Queries
-router.get('/get-all', userAdmin.findAll);
+router.get('/', userAdmin.findAll);
+router.get('/users', userAdmin.findAll);
 router.delete('/delete-all', userAdmin.deleteAll);
 
 module.exports = { router };
