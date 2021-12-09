@@ -34,16 +34,25 @@ exports.sendRequest = async (req, res) => {
 
     // If there is no relationship, create one
     if (!oldRelationship) {
-      console.log('no result');
+      //console.log('result', requestedUser.privacy);
       const newRelationshipEntry = new FollowRelationship({
-        sender: myUsername,
-        receiver: requestedUsername,
-        status: 'pending',
-      });
+        sender : myUsername,
+        receiver : requestedUsername
+      })
+      if (requestedUser.privacy){
+     
+        newRelationshipEntry.status = 'pending',
+        header = { status_code: 200, message: 'Successfully sent request.' };
+      }
+      else {
+        newRelationshipEntry.status = 'accepted'
+        header = { status_code: 200, message: 'Successfully followed.' };
+      }
       const newRelationship = await newRelationshipEntry.save();
-      header = { status_code: 200, message: 'Successfully sent request.' };
+      
       return res.status(header.status_code).send({ header, newRelationship });
     }
+
 
     // If relationship is already pending, return error
     if (oldRelationship.status === 'pending') {
@@ -55,9 +64,16 @@ exports.sendRequest = async (req, res) => {
     }
 
     // If there is a relationship but not pending, update it
+    if (requestedUser.privacy){
     oldRelationship.status = 'pending';
-    const newRelationship = await oldRelationship.save();
     header = { status_code: 200, message: 'Successfully sent request.' };
+    }
+    else{
+      oldRelationship.status = 'accepted'
+      header = { status_code: 200, message: 'Successfully followed.' };
+    }
+    const newRelationship = await oldRelationship.save();
+    
     return res.status(header.status_code).send({ header, newRelationship });
   } catch (err) {
     header = { status_code: 500, message: err };
