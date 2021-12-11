@@ -35,10 +35,12 @@ const getUser = async (myUsername, otherUsername) => {
   console.log('relationship', relationship);
   const followingCount = await FollowRelationship.countDocuments({
     sender: otherUsername,
+    status: 'accepted'
   }).exec();
   console.log('followingCount', followingCount);
   const followersCount = await FollowRelationship.countDocuments({
     receiver: otherUsername,
+    status : 'accepted'
   }).exec();
   console.log('followersCount', followersCount);
 
