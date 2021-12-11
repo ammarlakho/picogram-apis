@@ -56,15 +56,14 @@ const getUser = async (myUsername, otherUsername) => {
   }
 
   //if i am not following the other user, they are private and i have a pending follow request
-  if (otherUser.privacy && relationship.status === 'pending') {
+  if (relationship && relationship.status === 'pending'){
     return getUserObject(otherUser, followersCount, followingCount, [], -2);
   }
+
   // If i am not following the other user and they are private
-  if (otherUser.privacy) {
+  if (otherUser.privacy){
     return getUserObject(otherUser, followersCount, followingCount, [], -1);
   }
-
-  
 
   // If i am not following the other user and they are public
   const posts = await Post.find({ poster: otherUser._id }).exec();
