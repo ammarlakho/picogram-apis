@@ -1,3 +1,5 @@
+const { getUser } = require('../utils/getUserData');
+
 /* eslint-disable consistent-return */
 let header = {
   status_code: String,
@@ -5,6 +7,8 @@ let header = {
 };
 const FollowRelationship = require('../models/followRelationship');
 const User = require('../models/user');
+
+
 
 exports.sendRequest = async (req, res) => {
   const myUsername = req.decoded.username;
@@ -49,18 +53,31 @@ exports.sendRequest = async (req, res) => {
         header = { status_code: 200, message: 'Successfully followed.' };
       }
       const newRelationship = await newRelationshipEntry.save();
+      // const followingCount = await FollowRelationship.countDocuments({
+    //   sender: myUsername,
+    //   status: 'accepted'
+    // }).exec();
+    // console.log('followingCount', followingCount);
+    const followersCount = await FollowRelationship.countDocuments({
+      receiver: requestedUsername,
+      status : 'accepted'
+    }).exec();
+    console.log('sdfghj', followersCount);
       
-      return res.status(header.status_code).send({ header, newRelationship });
+      
+      console.log("no relationship, here")
+      console.log(newRelationship)
+      return res.status(header.status_code).send({ header, newRelationship, followersCount });
     }
 
 
     // If relationship is already pending, return error
-    if (oldRelationship.status === 'pending') {
-      header = {
-        status_code: 400,
-        message: `You have already sent a req to '${requestedUsername}'`,
-      };
-      return res.status(header.status_code).send({ header });
+      if (oldRelationship.status === 'pending') {
+        header = {
+          status_code: 400,
+          message: `You have already sent a req to '${requestedUsername}'`,
+        };
+        return res.status(header.status_code).send({ header });
     }
 
     // If there is a relationship but not pending, update it
@@ -73,10 +90,20 @@ exports.sendRequest = async (req, res) => {
       header = { status_code: 200, message: 'Successfully followed.' };
     }
     const newRelationship = await oldRelationship.save();
-    
-    return res.status(header.status_code).send({ header, newRelationship });
+    // const followingCount = await FollowRelationship.countDocuments({
+    //   sender: myUsername,
+    //   status: 'accepted'
+    // }).exec();
+    // console.log('followingCount', followingCount);
+    const followersCount = await FollowRelationship.countDocuments({
+      receiver: requestedUsername,
+      status : 'accepted'
+    }).exec();
+    console.log('hudA', followersCount);
+  
+    return res.status(header.status_code).send({ header, newRelationship, followersCount });
   } catch (err) {
-    header = { status_code: 500, message: err };
+    header = { status_code: 500, message: "heloooooooooooooooooooooooooooooooooooooooooooooo"  };
     return res.status(header.status_code).send({ header });
   }
 };
