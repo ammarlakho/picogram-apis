@@ -6,16 +6,20 @@ const postSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  url: {
-    type: String,
-    required: true,
-  },
   caption: {
     type: String,
     required: true,
   },
   date: {
     type: Date,
+    required: true,
+  },
+  url: {
+    type: String,
+    required: true,
+  },
+  cloudinary_id: {
+    type: String,
     required: true,
   },
 });
