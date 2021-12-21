@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-expressions */
+/* eslint-disable prettier/prettier */
 const { getUser } = require('../utils/getUserData');
 
 /* eslint-disable consistent-return */
@@ -7,8 +10,6 @@ let header = {
 };
 const FollowRelationship = require('../models/followRelationship');
 const User = require('../models/user');
-
-
 
 exports.sendRequest = async (req, res) => {
   const myUsername = req.decoded.username;
@@ -38,55 +39,53 @@ exports.sendRequest = async (req, res) => {
 
     // If there is no relationship, create one
     if (!oldRelationship) {
-      //console.log('result', requestedUser.privacy);
+      // console.log('result', requestedUser.privacy);
       const newRelationshipEntry = new FollowRelationship({
-        sender : myUsername,
-        receiver : requestedUsername
-      })
-      if (requestedUser.privacy){
-     
-        newRelationshipEntry.status = 'pending',
+        sender: myUsername,
+        receiver: requestedUsername,
+      });
+      if (requestedUser.privacy) {
+        newRelationshipEntry.status = 'pending';
         header = { status_code: 200, message: 'Successfully sent request.' };
-      }
-      else {
-        newRelationshipEntry.status = 'accepted'
+       
+      } else {
+        newRelationshipEntry.status = 'accepted';
         header = { status_code: 200, message: 'Successfully followed.' };
       }
       const newRelationship = await newRelationshipEntry.save();
       // const followingCount = await FollowRelationship.countDocuments({
-    //   sender: myUsername,
-    //   status: 'accepted'
-    // }).exec();
-    // console.log('followingCount', followingCount);
-    const followersCount = await FollowRelationship.countDocuments({
-      receiver: requestedUsername,
-      status : 'accepted'
-    }).exec();
-    console.log('sdfghj', followersCount);
-      
-      
-      console.log("no relationship, here")
-      console.log(newRelationship)
-      return res.status(header.status_code).send({ header, newRelationship, followersCount });
+      //   sender: myUsername,
+      //   status: 'accepted'
+      // }).exec();
+      // console.log('followingCount', followingCount);
+      const followersCount = await FollowRelationship.countDocuments({
+        receiver: requestedUsername,
+        status: 'accepted',
+      }).exec();
+      console.log('sdfghj', followersCount);
+
+      console.log('no relationship, here');
+      console.log(newRelationship);
+      return res
+        .status(header.status_code)
+        .send({ header, newRelationship, followersCount });
     }
 
-
     // If relationship is already pending, return error
-      if (oldRelationship.status === 'pending') {
-        header = {
-          status_code: 400,
-          message: `You have already sent a req to '${requestedUsername}'`,
-        };
-        return res.status(header.status_code).send({ header });
+    if (oldRelationship.status === 'pending') {
+      header = {
+        status_code: 400,
+        message: `You have already sent a req to '${requestedUsername}'`,
+      };
+      return res.status(header.status_code).send({ header });
     }
 
     // If there is a relationship but not pending, update it
-    if (requestedUser.privacy){
-    oldRelationship.status = 'pending';
-    header = { status_code: 200, message: 'Successfully sent request.' };
-    }
-    else{
-      oldRelationship.status = 'accepted'
+    if (requestedUser.privacy) {
+      oldRelationship.status = 'pending';
+      header = { status_code: 200, message: 'Successfully sent request.' };
+    } else {
+      oldRelationship.status = 'accepted';
       header = { status_code: 200, message: 'Successfully followed.' };
     }
     const newRelationship = await oldRelationship.save();
@@ -97,13 +96,18 @@ exports.sendRequest = async (req, res) => {
     // console.log('followingCount', followingCount);
     const followersCount = await FollowRelationship.countDocuments({
       receiver: requestedUsername,
-      status : 'accepted'
+      status: 'accepted',
     }).exec();
     console.log('hudA', followersCount);
-  
-    return res.status(header.status_code).send({ header, newRelationship, followersCount });
+
+    return res
+      .status(header.status_code)
+      .send({ header, newRelationship, followersCount });
   } catch (err) {
-    header = { status_code: 500, message: "heloooooooooooooooooooooooooooooooooooooooooooooo"  };
+    header = {
+      status_code: 500,
+      message: 'heloooooooooooooooooooooooooooooooooooooooooooooo',
+    };
     return res.status(header.status_code).send({ header });
   }
 };
