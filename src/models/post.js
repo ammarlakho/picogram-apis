@@ -16,7 +16,7 @@ const postSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    reqquired: true,
+    required: true,
   },
 });
 

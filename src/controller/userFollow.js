@@ -10,7 +10,7 @@ const FollowRelationship = require('../models/followRelationship');
 exports.getFollowers = async (req, res) => {
   const myUsername = req.decoded.username;
   try {
-    const followers = await FollowRelationship.find(
+    let followers = await FollowRelationship.find(
       {
         receiver: myUsername,
         status: 'accepted',
@@ -19,6 +19,12 @@ exports.getFollowers = async (req, res) => {
     )
       .populate('sender')
       .exec();
+    console.log('old', followers);
+
+    followers = JSON.parse(
+      JSON.stringify(followers).split('"sender":').join('"user":')
+    );
+    console.log('new', followers);
     header = { status_code: 200, message: 'Got followers' };
     return res.status(header.status_code).send({ header, followers });
   } catch (err) {
@@ -30,7 +36,7 @@ exports.getFollowers = async (req, res) => {
 exports.getFollowing = async (req, res) => {
   const myUsername = req.decoded.username;
   try {
-    const following = await FollowRelationship.find(
+    let following = await FollowRelationship.find(
       {
         sender: myUsername,
         status: 'accepted',
@@ -39,6 +45,10 @@ exports.getFollowing = async (req, res) => {
     )
       .populate('receiver')
       .exec();
+
+    following = JSON.parse(
+      JSON.stringify(following).split('"receiver":').join('"user":')
+    );
     header = { status_code: 200, message: 'Got following' };
     return res.status(header.status_code).send({ header, following });
   } catch (err) {

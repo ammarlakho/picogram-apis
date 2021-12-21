@@ -32,7 +32,7 @@ const getUser = async (myUsername, otherUsername) => {
     sender: myUsername,
     receiver: otherUsername,
   }).exec();
-  console.log('relationship', relationship);
+
   const followingCount = await FollowRelationship.countDocuments({
     sender: otherUsername,
   }).exec();
@@ -40,6 +40,7 @@ const getUser = async (myUsername, otherUsername) => {
   const followersCount = await FollowRelationship.countDocuments({
     receiver: otherUsername,
   }).exec();
+
   console.log('followersCount', followersCount);
 
   // If i want to see my own profile

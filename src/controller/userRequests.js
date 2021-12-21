@@ -126,7 +126,7 @@ exports.rejectRequest = async (req, res) => {
 exports.getRequests = async (req, res) => {
   const myUsername = req.decoded.username;
   try {
-    const requests = await FollowRelationship.find(
+    let requests = await FollowRelationship.find(
       {
         receiver: myUsername,
         status: 'pending',
@@ -135,6 +135,10 @@ exports.getRequests = async (req, res) => {
     )
       .populate('sender')
       .exec();
+
+    requests = JSON.parse(
+      JSON.stringify(requests).split('"sender":').join('"user":')
+    );
     header = { status_code: 200, message: 'Got requests' };
     return res.status(header.status_code).send({ header, requests });
   } catch (err) {
