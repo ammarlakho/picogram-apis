@@ -76,8 +76,13 @@ exports.unfollow = async (req, res) => {
     }
     oldRelationship.status = 'none';
     const newRelationship = await oldRelationship.save();
+    const followersCount = await FollowRelationship.countDocuments({
+      receiver: unfollowUsername,
+      status : 'accepted'
+    }).exec();
+    console.log('sdfghj', followersCount);
     header = { status_code: 200, message: 'Successfully unfollowed.' };
-    return res.status(header.status_code).send({ header, newRelationship });
+    return res.status(header.status_code).send({ header, newRelationship , followersCount});
   } catch (err) {
     header = { status_code: 500, message: err };
     return res.status(header.status_code).send({ header });

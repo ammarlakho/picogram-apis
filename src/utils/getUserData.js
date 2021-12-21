@@ -35,10 +35,12 @@ const getUser = async (myUsername, otherUsername) => {
 
   const followingCount = await FollowRelationship.countDocuments({
     sender: otherUsername,
+    status: 'accepted'
   }).exec();
   console.log('followingCount', followingCount);
   const followersCount = await FollowRelationship.countDocuments({
     receiver: otherUsername,
+    status : 'accepted'
   }).exec();
 
   console.log('followersCount', followersCount);
@@ -56,8 +58,13 @@ const getUser = async (myUsername, otherUsername) => {
     return getUserObject(otherUser, followersCount, followingCount, posts, 1);
   }
 
+  // if i am not following the other user, they are private and i have a pending follow request
+  if (relationship && relationship.status === 'pending'){
+    return getUserObject(otherUser, followersCount, followingCount, [], -2);
+  }
+
   // If i am not following the other user and they are private
-  if (otherUser.privacy) {
+  if (otherUser.privacy){
     return getUserObject(otherUser, followersCount, followingCount, [], -1);
   }
 
