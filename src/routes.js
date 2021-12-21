@@ -31,7 +31,7 @@ router.delete('/remove-follower', jwtAuth, userFollow.removeFollower);
 
 //likes/viewlikes
 router.post('/like', jwtAuth,userLikes.like);
-// router.get('/getLikes', jwtAuth, userLikes.getLikes);
+router.get('/getLikes', jwtAuth, userLikes.getLikes);
 
 // Admin Queries
 router.get('/', userAdmin.findAll);
