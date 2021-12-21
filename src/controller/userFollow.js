@@ -8,11 +8,13 @@ let header = {
 const FollowRelationship = require('../models/followRelationship');
 
 exports.getFollowers = async (req, res) => {
+  console.log("hi")
   const myUsername = req.decoded.username;
+  const otherUsername = req.query.username;
   try {
     let followers = await FollowRelationship.find(
       {
-        receiver: myUsername,
+        receiver: otherUsername,
         status: 'accepted',
       },
       'sender'
@@ -35,10 +37,11 @@ exports.getFollowers = async (req, res) => {
 
 exports.getFollowing = async (req, res) => {
   const myUsername = req.decoded.username;
+  const otherUsername = req.query.username;
   try {
     let following = await FollowRelationship.find(
       {
-        sender: myUsername,
+        sender: otherUsername,
         status: 'accepted',
       },
       'receiver'

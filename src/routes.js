@@ -3,6 +3,7 @@ const userProfile = require('./controller/userProfile.js');
 const userFollow = require('./controller/userFollow.js');
 const userAdmin = require('./controller/userAdmin.js');
 const userRequests = require('./controller/userRequests.js');
+const userLikes = require('./controller/userLikes.js')
 const { jwtAuth } = require('./utils/validateAuth');
 
 const router = express.Router();
@@ -27,6 +28,10 @@ router.get('/followers', jwtAuth, userFollow.getFollowers);
 router.get('/following', jwtAuth, userFollow.getFollowing);
 router.delete('/unfollow', jwtAuth, userFollow.unfollow);
 router.delete('/remove-follower', jwtAuth, userFollow.removeFollower);
+
+//likes/viewlikes
+router.post('/like', jwtAuth,userLikes.like);
+// router.get('/getLikes', jwtAuth, userLikes.getLikes);
 
 // Admin Queries
 router.get('/', userAdmin.findAll);
