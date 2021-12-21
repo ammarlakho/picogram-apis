@@ -4,11 +4,8 @@ const userProfile = require('./controller/userProfile.js');
 const userFollow = require('./controller/userFollow.js');
 const userAdmin = require('./controller/userAdmin.js');
 const userRequests = require('./controller/userRequests.js');
-<<<<<<< HEAD
 const userPosts = require('./controller/userPosts.js');
-=======
 const userLikes = require('./controller/userLikes.js')
->>>>>>> cf321c53900a5f0aa41537b3486f8d9d8d3fe99a
 const { jwtAuth } = require('./utils/validateAuth');
 const upload = require('./utils/multer');
 
