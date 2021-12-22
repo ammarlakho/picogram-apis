@@ -172,11 +172,11 @@ exports.rejectRequest = async (req, res) => {
 
 exports.getRequests = async (req, res) => {
   const myUsername = req.decoded.username;
-  const otherUsername = req.query.username;
+  
   try {
     let requests = await FollowRelationship.find(
       {
-        receiver: otherUsername,
+        receiver: myUsername,
         status: 'pending',
       },
       'sender'
