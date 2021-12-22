@@ -42,7 +42,7 @@ router.post(
 router.delete('/delete-post', jwtAuth, userPosts.deletePost);
 //likes/viewlikes
 router.post('/like', jwtAuth,userLikes.like);
-// router.get('/getLikes', jwtAuth, userLikes.getLikes);
+router.get('/getLikes', jwtAuth, userLikes.getLikes);
 
 // Admin Queries
 router.get('/', userAdmin.findAll);

@@ -48,16 +48,25 @@ const Like = require('../models/like');
     }
   };
 
-//   exports.getLikes = async (req, res) => {
-//     const liker = req.decoded.username;
-//     try {
-//         const likesCount = Like.countDocuments(
-//             {
+  exports.getLikes = async (req, res) => {
+    const liker = req.decoded.username;
+    const post = req.query.post;
+    try {
+        const likesCount = await Like.countDocuments(
+            {
+                post : post
+            }
+        ).exec();
+        console.log('sdfghj', likesCount);
+        header = { status_code: 200, message: 'post likes.' };
+        return res.status(header.status_code).send({ header, likesCount});
 
-//             }
-//         )
-//     }
-//   }
+    }
+    catch(err){
+        header = { status_code: 500, message: err };
+        return res.status(header.status_code).send({ header });
+    }
+  }
   
  
   
