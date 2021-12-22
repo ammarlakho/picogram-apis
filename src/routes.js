@@ -9,32 +9,6 @@ const userLikes = require('./controller/userLikes.js')
 const { jwtAuth } = require('./utils/validateAuth');
 const upload = require('./utils/multer');
 
-// const storage = multer.diskStorage({
-//   destination(req, file, cb) {
-//     cb(null, './images/');
-//   },
-//   filename(req, file, cb) {
-//     cb(null, file.originalname);
-//   },
-// });
-
-// const fileFilter = (req, file, cb) => {
-//   // reject a file
-//   if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-//     cb(null, true);
-//   } else {
-//     cb(null, false);
-//   }
-// };
-
-// const upload = multer({
-//   storage,
-//   limits: {
-//     fileSize: 1024 * 1024 * 10,
-//   },
-//   fileFilter,
-// });
-
 const router = express.Router();
 
 // Login/Register
