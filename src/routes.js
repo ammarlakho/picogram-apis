@@ -40,6 +40,8 @@ router.post(
   userPosts.createPost
 );
 router.delete('/delete-post', jwtAuth, userPosts.deletePost);
+router.get('/home', jwtAuth, userPosts.getHome);
+
 //likes/viewlikes
 router.post('/like', jwtAuth,userLikes.like);
 router.get('/getLikes', jwtAuth, userLikes.getLikes);

@@ -9,10 +9,13 @@ let header = {
   message: String,
 };
 const Post = require('../models/post');
+const FollowRelationship = require('../models/followRelationship');
 
 exports.createPost = async (req, res) => {
   const myUsername = req.decoded.username;
   try {
+    console.log("hi");
+    console.log("req", req.body);
     const cdnResponse = await cloudinary.uploader.upload(req.file.path);
     console.log('cdnResponse', cdnResponse);
     const post = new Post({
@@ -64,18 +67,24 @@ exports.deletePost = async (req, res) => {
   }
 };
 
-// exports.getPostsHome = async (req, res) => {
-//   const myUsername = req.decoded.username;
-//   const otherUsername = req.params.username;
-//   try {
-//     const posts = await Post.find({ poster: otherUsername }).exec();
-//     header = { status_code: 200, message: 'Got posts' };
-//     return res.status(header.status_code).send({ header, posts });
-//   } catch (err) {
-//     header = { status_code: 500, message: err };
-//     return res.status(header.status_code).send({ header });
-//   }
-// };
+exports.getHome = async (req, res) => {
+  const myUsername = req.decoded.username;
+  const following = await FollowRelationship.find({sender: myUsername, status: 'accepted'}, 'receiver').exec();
+  const followingStrings = following.map(f => f.receiver);
+  console.log(following)
+  console.log(followingStrings)
+  try {
+    const posts = await Post.find({  
+        "poster":{"$in": followingStrings},
+    }).exec();
+
+    header = { status_code: 200, message: 'Got posts' };
+    return res.status(header.status_code).send({ header, posts });
+  } catch (err) {
+    header = { status_code: 500, message: err };
+    return res.status(header.status_code).send({ header });
+  }
+};
 
 // get-posts-home
 // edit-post
