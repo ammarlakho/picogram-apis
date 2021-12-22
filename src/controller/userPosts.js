@@ -10,6 +10,7 @@ let header = {
 };
 const Post = require('../models/post');
 const FollowRelationship = require('../models/followRelationship');
+const Like = require('../models/like')
 
 exports.createPost = async (req, res) => {
   const myUsername = req.decoded.username;
@@ -71,15 +72,30 @@ exports.getHome = async (req, res) => {
   const myUsername = req.decoded.username;
   const following = await FollowRelationship.find({sender: myUsername, status: 'accepted'}, 'receiver').exec();
   const followingStrings = following.map(f => f.receiver);
-  console.log(following)
-  console.log(followingStrings)
   try {
     const posts = await Post.find({  
         "poster":{"$in": followingStrings},
     }).exec();
+    const likesArray = []
+    for (let i=0; i<posts.length; i++) {
+      try {
+        const likesCount = await Like.countDocuments(
+          {
+              post : posts[i]._id
+          }
+        ).exec();
+        console.log(likesCount);
+        likesArray.push(likesCount)
+        posts[i].likesCount = likesCount;
+      }
+      catch (err) {
+        console.log(err)
+      }
+      
+    }
 
     header = { status_code: 200, message: 'Got posts' };
-    return res.status(header.status_code).send({ header, posts });
+    return res.status(header.status_code).send({ header, posts, likesArray });
   } catch (err) {
     header = { status_code: 500, message: err };
     return res.status(header.status_code).send({ header });
